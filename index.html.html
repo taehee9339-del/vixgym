@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>빅스짐 세션 카드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8f000;
+    --accent2: #ff4444;
+    --text: #f0f0f0;
+    --text-dim: #666;
+    --text-mid: #aaa;
+    --radius: 14px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    padding-bottom: 160px;
+  }
+
+  .header {
+    padding: 20px 20px 0;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .gym-name {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .header-right { display: flex; gap: 8px; align-items: center; }
+
+  .tab-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .today-date { font-size: 0.75rem; color: var(--text-dim); }
+
+  .plan-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+
+  .plan-btn {
+    width: 80px;
+    flex-shrink: 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .plan-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .plan-btn sub { display: block; font-family: 'Noto Sans KR', sans-serif; font-size: 0.65rem; font-weight: 300; margin-top: 2px; opacity: 0.8; }
+
+  .day-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+
+  .day-tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .day-tab.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+  /* 세션 */
+  .session-container { padding: 16px; display: none; }
+  .session-container.active { display: block; }
+
+  .session-header { margin-bottom: 16px; }
+  .session-title { font-family: 'Black Han Sans', sans-serif; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 4px; }
+  .session-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-tag { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: var(--surface2); color: var(--text-mid); border: 1px solid var(--border); }
+
+  /* 운동 카드 */
+  .exercise-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .exercise-card.done { border-color: rgba(200,240,0,0.4); background: rgba(200,240,0,0.04); }
+
+  .exercise-header { display: flex; align-items: center; padding: 14px 16px; gap: 12px; cursor: pointer; }
+
+  .ex-number {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Black Han Sans', sans-serif; font-size: 0.8rem; color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .exercise-card.done .ex-number { background: var(--accent); border-color: var(--accent); color: #000; }
+
+  .ex-info { flex: 1; min-width: 0; }
+
+  .ex-name-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+
+  .ex-name {
+    font-weight: 700; font-size: 0.9rem;
+    cursor: text;
+    border-bottom: 1px dashed transparent;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    width: 100%;
+    min-width: 0;
+  }
+  .ex-name:focus { border-bottom-color: var(--accent); }
+
+  .edit-icon { font-size: 0.7rem; color: var(--text-dim); flex-shrink: 0; }
+
+  .ex-detail { font-size: 0.75rem; color: var(--text-dim); }
+  .ex-rpe { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: var(--surface2); color: var(--text-mid); flex-shrink: 0; }
+  .exercise-card.done .ex-rpe { color: var(--accent); }
+
+  /* 세트 트래커 */
+  .set-tracker { padding: 0 16px 14px; display: none; }
+  .set-tracker.open { display: block; }
+
+  .set-header-row {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-header-label { font-size: 0.68rem; color: var(--text-dim); }
+  .set-header-label.set-col { width: 38px; flex-shrink: 0; }
+  .set-header-label.input-col { width: 80px; flex-shrink: 0; text-align: center; }
+  .set-header-label.check-col { width: 32px; flex-shrink: 0; text-align: center; }
+
+  .set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+
+  .set-label { font-size: 0.75rem; color: var(--text-dim); width: 38px; flex-shrink: 0; }
+
+  .set-input {
+    width: 80px;
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    text-align: center;
+    -webkit-appearance: none;
+  }
+  .set-input:focus { outline: none; border-color: var(--accent); }
+
+  .set-check {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; font-size: 0.9rem;
+  }
+  .set-check.checked { background: var(--accent); border-color: var(--accent); color: #000; }
+
+  .section-label {
+    font-family: 'Black Han Sans', sans-serif; font-size: 0.8rem;
+    letter-spacing: 2px; color: var(--text-dim);
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    margin-bottom: 10px; margin-top: 6px;
+  }
+
+  .warning-tag {
+    font-size: 0.68rem; color: var(--accent2);
+    background: rgba(255,68,68,0.1); padding: 2px 8px;
+    border-radius: 20px; border: 1px solid rgba(255,68,68,0.2);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .plan-b-badge {
+    background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.3);
+    color: var(--accent2); border-radius: 8px; padding: 10px 14px;
+    font-size: 0.78rem; margin-bottom: 14px; line-height: 1.6;
+  }
+  .plan-b-badge b { color: #ff6666; }
+
+  /* 하단 바 */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 16px 16px; z-index: 200;
+  }
+
+  .progress-bar { width: 100%; height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 10px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+  .timer-row { display: flex; align-items: center; gap: 10px; }
+
+  .timer-left { flex-shrink: 0; }
+  .timer-label { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 2px; }
+  .timer-time {
+    font-family: 'Black Han Sans', sans-serif; font-size: 1.6rem;
+    letter-spacing: 2px; color: var(--accent); min-width: 72px;
+  }
+  .timer-time.running { animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .timer-right { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+  .timer-adjust { display: flex; align-items: center; gap: 6px; }
+  .timer-adjust-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .timer-adjust-label { flex: 1; text-align: center; font-size: 0.72rem; color: var(--text-dim); }
+
+  .timer-actions { display: flex; gap: 6px; }
+  .timer-btn {
+    flex: 1; padding: 8px; border-radius: 10px; border: none;
+    font-family: 'Black Han Sans', sans-serif; font-size: 0.78rem;
+    letter-spacing: 1px; cursor: pointer;
+  }
+  .timer-btn.start { background: var(--accent); color: #000; }
+  .timer-btn.reset { background: var(--surface2); color: var(--text-mid); border: 1px solid var(--border); }
+
+  /* 4주 기록 시트 */
+  .record-container { padding: 16px; display: none; }
+  .record-container.active { display: block; }
+
+  .record-title {
+    font-family: 'Black Han Sans', sans-serif; font-size: 1.2rem;
+    letter-spacing: 2px; margin-bottom: 4px;
+  }
+  .record-sub { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 16px; }
+
+  .week-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .week-tab {
+    flex: 1; padding: 8px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text-dim); font-family: 'Black Han Sans', sans-serif;
+    font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; text-align: center;
+  }
+  .week-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .record-section { margin-bottom: 20px; }
+  .record-section-title {
+    font-family: 'Black Han Sans', sans-serif; font-size: 0.8rem;
+    letter-spacing: 2px; color: var(--text-dim);
+    padding: 6px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+  }
+
+  .record-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+  }
+
+  .record-card-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; }
+
+  .record-week-row { display: flex; gap: 6px; }
+  .record-week-item { flex: 1; text-align: center; }
+  .record-week-label { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 4px; }
+  .record-week-val {
+    font-family: 'Black Han Sans', sans-serif; font-size: 0.85rem;
+    color: var(--accent); background: var(--surface2);
+    border-radius: 6px; padding: 6px 4px;
+  }
+  .record-week-val.empty { color: var(--text-dim); font-family: 'Noto Sans KR', sans-serif; font-size: 0.75rem; }
+
+  .record-trend {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px; font-size: 0.72rem; color: var(--text-dim);
+  }
+  .trend-up { color: var(--accent); }
+  .trend-down { color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="gym-name">VIXGYM</div>
+    <div class="header-right">
+      <div class="tab-btn active" id="tab-session" onclick="switchMainTab('session')">세션</div>
+      <div class="tab-btn" id="tab-record" onclick="switchMainTab('record')">기록</div>
+      <div class="today-date" id="today-date"></div>
+    </div>
+  </div>
+
+  <div id="session-header-controls">
+    <div class="plan-toggle">
+      <div class="plan-btn active" onclick="setPlan('A')" id="btn-planA">
+        PLAN A <sub>목: 등+하체후면 가능</sub>
+      </div>
+      <div class="plan-btn" onclick="setPlan('B')" id="btn-planB">
+        PLAN B <sub>목: 컨디션 안 좋을 때</sub>
+      </div>
+    </div>
+    <div class="day-tabs" id="day-tabs"></div>
+  </div>
+</div>
+
+<div id="sessions"></div>
+
+<div class="record-container" id="record-view">
+  <div class="record-title">볼륨 기록</div>
+  <div class="record-sub">항목별 주차별 총 볼륨 (무게 × 횟수 × 세트)</div>
+  <div id="record-content"></div>
+</div>
+
+<!-- 하단 타이머 -->
+<div class="bottom-bar">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="timer-row">
+    <div class="timer-left">
+      <div class="timer-label">휴식 타이머</div>
+      <div class="timer-time" id="timer-display">2:00</div>
+    </div>
+    <div class="timer-right">
+      <div class="timer-adjust">
+        <button class="timer-adjust-btn" onclick="adjustTimer(-30)">−</button>
+        <div class="timer-adjust-label">30초 조절</div>
+        <button class="timer-adjust-btn" onclick="adjustTimer(30)">+</button>
+      </div>
+      <div class="timer-actions">
+        <button class="timer-btn start" id="timer-start-btn" onclick="toggleTimer()">시작</button>
+        <button class="timer-btn reset" onclick="resetTimer()">리셋</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 데이터 =====
+const PLAN_DATA = {
+  A: {
+    days: ['월','화','수','목','금'],
+    sessions: {
+      '월': {
+        title: '가슴 + 등', tags: ['프리웨이트','머신'],
+        sections: [
+          { label: '가슴 (프리 위주)', exercises: [
+            { name: '인클라인 바벨 벤치프레스', sets: 4, reps: '6~8', rpe: '8~9', warn: true },
+            { name: '인클라인 덤벨 플라이', sets: 3, reps: '12', rpe: '7~8' },
+            { name: '딥스', sets: 3, reps: '10~12', rpe: '7~8' },
+          ]},
+          { label: '등 (머신 위주)', exercises: [
+            { name: '랫풀다운 (언더그립)', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: 'Panatta 하이로우', sets: 3, reps: '10~12', rpe: '7~8' },
+            { name: 'Hammer 로우로우', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '화': {
+        title: '전면 하체 + 측·후면 어깨', tags: ['하체','어깨'],
+        sections: [
+          { label: '전면 하체', exercises: [
+            { name: '바벨 스쿼트', sets: 4, reps: '8~10', rpe: '8~9', warn: true },
+            { name: 'Cybex 레그프레스', sets: 3, reps: '10~12', rpe: '7~8' },
+            { name: '레그 익스텐션', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+          { label: '측·후면 어깨', exercises: [
+            { name: '사이드 레터럴 레이즈', sets: 4, reps: '12~15', rpe: '7~8' },
+            { name: '케이블 레터럴 레이즈', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '리어델트 머신', sets: 3, reps: '15', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '수': {
+        title: '팔 + 복근', tags: ['이두','삼두','복근'],
+        sections: [
+          { label: '이두', exercises: [
+            { name: '바벨 컬', sets: 4, reps: '8~10', rpe: '8~9' },
+            { name: '인클라인 덤벨 컬', sets: 4, reps: '12~15', rpe: '7~8' },
+          ]},
+          { label: '삼두', exercises: [
+            { name: '클로즈그립 벤치프레스', sets: 3, reps: '12~15', rpe: '7~8' },
+            { name: '케이블 푸시다운 (로프)', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '해머컬', sets: 3, reps: '10', rpe: '7~8' },
+          ]},
+          { label: '복근', exercises: [
+            { name: '복근', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '목': {
+        title: '등 + 하체 후면', tags: ['등','햄스트링','둔근'],
+        sections: [
+          { label: '등', exercises: [
+            { name: '덤벨 루마니안 데드리프트', sets: 3, reps: '10~12', rpe: '7~8', warn: true },
+            { name: '랫풀다운 (와이드)', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: '시티드 케이블 로우 (넓게)', sets: 3, reps: '10', rpe: '7~8' },
+          ]},
+          { label: '하체 후면', exercises: [
+            { name: 'Cybex Prone 레그컬', sets: 3, reps: '12', rpe: '7~8' },
+            { name: 'Cybex Seated 레그컬', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '금': {
+        title: '어깨', tags: ['저중량','펌핑','가슴 간접'],
+        sections: [
+          { label: '어깨', exercises: [
+            { name: '스미스 고각 숄더프레스', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: '아스날 숄더 (무게 낮추고)', sets: 3, reps: '8~10', rpe: '7~8' },
+            { name: '사이드 레터럴 레이즈', sets: 3, reps: '12~15', rpe: '7~8' },
+            { name: '측 후면 레터럴 레이즈', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '덤벨 프론트', sets: 3, reps: '15', rpe: '7~8' },
+          ]},
+        ]
+      },
+    }
+  },
+  B: {
+    days: ['월','화','수','목','금'],
+    sessions: {
+      '월': {
+        title: '가슴 + 등', tags: ['프리웨이트','머신'],
+        sections: [
+          { label: '가슴 (프리 위주)', exercises: [
+            { name: '인클라인 바벨 벤치프레스', sets: 4, reps: '6~8', rpe: '8~9', warn: true },
+            { name: '인클라인 덤벨 플라이', sets: 3, reps: '12', rpe: '7~8' },
+            { name: '딥스', sets: 3, reps: '10~12', rpe: '7~8' },
+          ]},
+          { label: '등 (머신 위주)', exercises: [
+            { name: '랫풀다운 (언더그립)', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: 'Panatta 하이로우', sets: 3, reps: '10~12', rpe: '7~8' },
+            { name: 'Hammer 로우로우', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '화': {
+        title: '전면 하체 + 측·후면 어깨', tags: ['하체','어깨'],
+        sections: [
+          { label: '전면 하체', exercises: [
+            { name: '바벨 스쿼트', sets: 4, reps: '8~10', rpe: '8~9', warn: true },
+            { name: 'Cybex 레그프레스', sets: 3, reps: '10~12', rpe: '7~8' },
+            { name: '레그 익스텐션', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+          { label: '측·후면 어깨', exercises: [
+            { name: '사이드 레터럴 레이즈', sets: 4, reps: '12~15', rpe: '7~8' },
+            { name: '케이블 레터럴 레이즈', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '리어델트 머신', sets: 3, reps: '15', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '수': {
+        title: '팔 + 복근', tags: ['이두','삼두','복근'],
+        sections: [
+          { label: '이두', exercises: [
+            { name: '바벨 컬', sets: 4, reps: '8~10', rpe: '8~9' },
+            { name: '인클라인 덤벨 컬', sets: 4, reps: '12~15', rpe: '7~8' },
+          ]},
+          { label: '삼두', exercises: [
+            { name: '클로즈그립 벤치프레스', sets: 3, reps: '12~15', rpe: '7~8' },
+            { name: '케이블 푸시다운 (로프)', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '해머컬', sets: 3, reps: '10', rpe: '7~8' },
+          ]},
+          { label: '복근', exercises: [
+            { name: '복근', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '목': {
+        title: '어깨', tags: ['컨디션 나쁠 때','플랜 B'],
+        planBNote: '목요일 하체 컨디션 안 좋을 때 — 어깨로 대체. 하체는 금요일.',
+        sections: [
+          { label: '어깨', exercises: [
+            { name: '스미스 고각 숄더프레스', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: '아스날 숄더 (무게 낮추고)', sets: 3, reps: '8~10', rpe: '7~8' },
+            { name: '사이드 레터럴 레이즈', sets: 3, reps: '12~15', rpe: '7~8' },
+            { name: '측 후면 레터럴 레이즈', sets: 3, reps: '15', rpe: '7~8' },
+            { name: '덤벨 프론트', sets: 3, reps: '15', rpe: '7~8' },
+          ]},
+        ]
+      },
+      '금': {
+        title: '등 + 하체 후면', tags: ['플랜 B','후면사슬'],
+        planBNote: '목요일 어깨로 대체한 날 — 금요일은 등+하체 후면.',
+        sections: [
+          { label: '등', exercises: [
+            { name: '덤벨 루마니안 데드리프트', sets: 3, reps: '10~12', rpe: '7~8', warn: true },
+            { name: '랫풀다운 (와이드)', sets: 4, reps: '8~10', rpe: '7~8' },
+            { name: '시티드 케이블 로우 (넓게)', sets: 3, reps: '10', rpe: '7~8' },
+          ]},
+          { label: '하체 후면', exercises: [
+            { name: 'Cybex Prone 레그컬', sets: 3, reps: '12', rpe: '7~8' },
+            { name: 'Cybex Seated 레그컬', sets: 3, reps: '12', rpe: '7~8' },
+          ]},
+        ]
+      },
+    }
+  }
+};
+
+// ===== 상태 =====
+let currentPlan = 'A';
+let currentDay = '월';
+let currentMainTab = 'session';
+let checkedSets = {};
+let setData = {}; // { checkId: { weight, reps } }
+let timerInterval = null;
+let timerSeconds = 120;
+let timerTarget = 120;
+let timerRunning = false;
+let audioCtx = null;
+let alarmInterval = null;
+
+// ===== 오디오 컨텍스트 초기화 (터치로 활성화) =====
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+document.addEventListener('touchstart', initAudio, { once: false, passive: true });
+document.addEventListener('click', initAudio, { once: false, passive: true });
+
+function playOneBeep() {
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const pattern = [0, 0.35, 0.7];
+    pattern.forEach(delay => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      const t = audioCtx.currentTime + delay;
+      gain.gain.setValueAtTime(0.6, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.start(t);
+      osc.stop(t + 0.28);
+    });
+  } catch(e) { console.log('alarm error', e); }
+}
+
+function startAlarm() {
+  stopAlarm();
+  playOneBeep();
+  alarmInterval = setInterval(playOneBeep, 2000);
+  // 타이머 표시 변경
+  document.getElementById('timer-display').textContent = '완료!';
+  document.getElementById('timer-start-btn').textContent = '중지';
+  document.getElementById('timer-start-btn').style.background = 'var(--accent2)';
+}
+
+function stopAlarm() {
+  if (alarmInterval) {
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+  document.getElementById('timer-start-btn').style.background = 'var(--accent)';
+}
+
+// ===== 날짜 =====
+function setToday() {
+  const days = ['일','월','화','수','목','금','토'];
+  const now = new Date();
+  const dayName = days[now.getDay()];
+  document.getElementById('today-date').textContent = `${now.getMonth()+1}/${now.getDate()}(${dayName})`;
+  if (PLAN_DATA[currentPlan].days.includes(dayName)) currentDay = dayName;
+}
+
+// ===== 메인 탭 =====
+function switchMainTab(tab) {
+  currentMainTab = tab;
+  document.getElementById('tab-session').classList.toggle('active', tab === 'session');
+  document.getElementById('tab-record').classList.toggle('active', tab === 'record');
+  document.getElementById('session-header-controls').style.display = tab === 'session' ? 'block' : 'none';
+
+  document.querySelectorAll('.session-container').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  if (tab === 'session') {
+    const target = document.getElementById(`session-${currentPlan}-${currentDay}`);
+    if (target) target.style.display = 'block';
+    document.getElementById('record-view').classList.remove('active');
+  } else {
+    document.getElementById('record-view').classList.add('active');
+    renderRecordView();
+  }
+}
+
+// ===== 플랜 =====
+function setPlan(plan) {
+  currentPlan = plan;
+  document.getElementById('btn-planA').classList.toggle('active', plan === 'A');
+  document.getElementById('btn-planB').classList.toggle('active', plan === 'B');
+  checkedSets = {};
+  renderDayTabs();
+  document.querySelectorAll('.session-container').forEach(el => el.style.display = 'none');
+  const target = document.getElementById(`session-${currentPlan}-${currentDay}`);
+  if (target) target.style.display = 'block';
+  updateProgress();
+}
+
+// ===== 요일 탭 =====
+function renderDayTabs() {
+  const container = document.getElementById('day-tabs');
+  container.innerHTML = '';
+  PLAN_DATA[currentPlan].days.forEach(day => {
+    const tab = document.createElement('div');
+    tab.className = 'day-tab' + (day === currentDay ? ' active' : '');
+    tab.textContent = day;
+    tab.onclick = () => selectDay(day);
+    container.appendChild(tab);
+  });
+}
+
+function selectDay(day) {
+  currentDay = day;
+  renderDayTabs();
+  document.querySelectorAll('.session-container').forEach(el => el.style.display = 'none');
+  const target = document.getElementById(`session-${currentPlan}-${day}`);
+  if (target) target.style.display = 'block';
+  updateProgress();
+}
+
+// ===== 세션 렌더 =====
+function renderSessions() {
+  const container = document.getElementById('sessions');
+  container.innerHTML = '';
+
+  Object.entries(PLAN_DATA).forEach(([planKey, plan]) => {
+    Object.entries(plan.sessions).forEach(([day, session]) => {
+      const div = document.createElement('div');
+      div.className = 'session-container';
+      div.id = `session-${planKey}-${day}`;
+      div.style.display = (planKey === currentPlan && day === currentDay) ? 'block' : 'none';
+
+      let exIdx = 0;
+      let html = `
+        <div class="session-header">
+          <div class="session-title">${session.title}</div>
+          <div class="session-meta">${session.tags.map(t => `<span class="meta-tag">${t}</span>`).join('')}</div>
+        </div>
+      `;
+      if (session.planBNote) html += `<div class="plan-b-badge">⚡ <b>플랜 B</b> — ${session.planBNote}</div>`;
+
+      session.sections.forEach(sec => {
+        html += `<div class="section-label">${sec.label}</div>`;
+        sec.exercises.forEach(ex => {
+          const exId = `${planKey}-${day}-${exIdx}`;
+          html += renderExerciseCard(ex, exId, exIdx + 1);
+          exIdx++;
+        });
+      });
+
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  });
+}
+
+function renderExerciseCard(ex, exId, num) {
+  let setsHTML = `
+    <div class="set-header-row">
+      <div class="set-header-label set-col">세트</div>
+      <div class="set-header-label input-col">무게(kg)</div>
+      <div class="set-header-label input-col">횟수</div>
+      <div class="set-header-label check-col">완료</div>
+    </div>
+  `;
+  for (let i = 1; i <= ex.sets; i++) {
+    const checkId = `${exId}-set${i}`;
+    setsHTML += `
+      <div class="set-row">
+        <div class="set-label">SET ${i}</div>
+        <input class="set-input" type="number" placeholder="kg" id="weight-${checkId}"
+          onchange="saveSetData('${checkId}')">
+        <input class="set-input" type="number" placeholder="회" id="reps-${checkId}"
+          onchange="saveSetData('${checkId}')">
+        <div class="set-check" id="check-${checkId}" onclick="toggleSet('${checkId}','${exId}')">✓</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="exercise-card" id="card-${exId}">
+      <div class="exercise-header" onclick="toggleTracker('${exId}')">
+        <div class="ex-number" id="num-${exId}">${num}</div>
+        <div class="ex-info">
+          <div class="ex-name-wrap">
+            <input class="ex-name" type="text" value="${ex.name}"
+              onclick="event.stopPropagation()"
+              onchange="updateExName('${exId}', this.value)">
+            <span class="edit-icon">✎</span>
+          </div>
+          <div class="ex-detail">${ex.sets}세트 × ${ex.reps}회${ex.warn ? '<br><span class="warning-tag">⚠️ 허리 폼 주의</span>' : ''}</div>
+        </div>
+        <div class="ex-rpe">RPE ${ex.rpe}</div>
+      </div>
+      <div class="set-tracker" id="tracker-${exId}">${setsHTML}</div>
+    </div>
+  `;
+}
+
+function updateExName(exId, newName) {
+  // 이름 변경 시 데이터에도 반영
+  const parts = exId.split('-');
+  const planKey = parts[0];
+  const day = parts[1];
+  const idx = parseInt(parts[2]);
+  let exCount = 0;
+  const plan = PLAN_DATA[planKey].sessions[day];
+  for (const sec of plan.sections) {
+    for (const ex of sec.exercises) {
+      if (exCount === idx) { ex.name = newName; return; }
+      exCount++;
+    }
+  }
+}
+
+function toggleTracker(exId) {
+  const tracker = document.getElementById(`tracker-${exId}`);
+  tracker.classList.toggle('open');
+}
+
+function saveSetData(checkId) {
+  const w = document.getElementById(`weight-${checkId}`)?.value;
+  const r = document.getElementById(`reps-${checkId}`)?.value;
+  if (!setData[checkId]) setData[checkId] = {};
+  setData[checkId].weight = parseFloat(w) || 0;
+  setData[checkId].reps = parseInt(r) || 0;
+}
+
+function toggleSet(checkId, exId) {
+  initAudio();
+  saveSetData(checkId);
+
+  const check = document.getElementById(`check-${checkId}`);
+  const isChecked = check.classList.toggle('checked');
+  checkedSets[checkId] = isChecked;
+
+  // 볼륨 저장
+  if (!setData[checkId]) setData[checkId] = {};
+  setData[checkId].checked = isChecked;
+
+  // 운동 완료 체크
+  const parts = exId.split('-');
+  const planKey = parts[0], day = parts[1], idx = parseInt(parts[2]);
+  let exSets = 0, exCount = 0;
+  for (const sec of PLAN_DATA[planKey].sessions[day].sections) {
+    for (const ex of sec.exercises) {
+      if (exCount === idx) { exSets = ex.sets; break; }
+      exCount++;
+    }
+  }
+  let checkedCount = 0;
+  for (let i = 1; i <= exSets; i++) {
+    if (checkedSets[`${exId}-set${i}`]) checkedCount++;
+  }
+  document.getElementById(`card-${exId}`).classList.toggle('done', checkedCount === exSets && exSets > 0);
+
+  updateProgress();
+
+  if (isChecked) {
+    resetTimer();
+    startTimer();
+  }
+}
+
+// ===== 진행도 =====
+function updateProgress() {
+  const session = PLAN_DATA[currentPlan].sessions[currentDay];
+  if (!session) return;
+  let total = 0, done = 0, exIdx = 0;
+  session.sections.forEach(sec => {
+    sec.exercises.forEach(ex => {
+      const exId = `${currentPlan}-${currentDay}-${exIdx}`;
+      for (let i = 1; i <= ex.sets; i++) {
+        total++;
+        if (checkedSets[`${exId}-set${i}`]) done++;
+      }
+      exIdx++;
+    });
+  });
+  document.getElementById('progress-fill').style.width = (total > 0 ? done/total*100 : 0) + '%';
+}
+
+// ===== 타이머 =====
+function adjustTimer(delta) {
+  const newVal = timerTarget + delta;
+  if (newVal < 30) return;
+  timerTarget = newVal;
+  if (!timerRunning) {
+    timerSeconds = timerTarget;
+    updateTimerDisplay();
+  }
+}
+
+function toggleTimer() {
+  if (alarmInterval) {
+    stopAlarm();
+    timerSeconds = timerTarget;
+    updateTimerDisplay();
+    return;
+  }
+  timerRunning ? pauseTimer() : startTimer();
+}
+
+function startTimer() {
+  if (timerRunning) return;
+  if (timerSeconds <= 0) timerSeconds = timerTarget;
+  timerRunning = true;
+  document.getElementById('timer-start-btn').textContent = '정지';
+  document.getElementById('timer-display').classList.add('running');
+  timerInterval = setInterval(() => {
+    if (timerSeconds > 0) {
+      timerSeconds--;
+      updateTimerDisplay();
+    } else {
+      pauseTimer();
+      startAlarm();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-display').classList.remove('running');
+}
+
+function resetTimer() {
+  stopAlarm();
+  pauseTimer();
+  timerSeconds = timerTarget;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('timer-display').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ===== 4주 기록 시트 =====
+function getWeekNumber() {
+  const start = new Date('2025-01-06');
+  const now = new Date();
+  const diff = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+  return (diff % 4) + 1;
+}
+
+function calcVolume(exId, exSets) {
+  let total = 0;
+  for (let i = 1; i <= exSets; i++) {
+    const checkId = `${exId}-set${i}`;
+    const d = setData[checkId];
+    if (d && d.checked && d.weight && d.reps) {
+      total += d.weight * d.reps;
+    }
+  }
+  return total;
+}
+
+function renderRecordView() {
+  const container = document.getElementById('record-content');
+  let html = '';
+
+  Object.entries(PLAN_DATA).forEach(([planKey, plan]) => {
+    Object.entries(plan.sessions).forEach(([day, session]) => {
+      let exIdx = 0;
+      let sectionHtml = '';
+
+      session.sections.forEach(sec => {
+        let exHtml = '';
+        sec.exercises.forEach(ex => {
+          const exId = `${planKey}-${day}-${exIdx}`;
+          const vol = calcVolume(exId, ex.sets);
+          const volDisplay = vol > 0 ? `${vol.toLocaleString()}kg` : '-';
+
+          // 주차별 저장된 볼륨 (현재는 현재 세션만, 향후 localStorage 확장 가능)
+          exHtml += `
+            <div class="record-card">
+              <div class="record-card-name">${ex.name}</div>
+              <div class="record-week-row">
+                <div class="record-week-item">
+                  <div class="record-week-label">1주차</div>
+                  <div class="record-week-val ${vol > 0 && getWeekNumber() === 1 ? '' : 'empty'}" id="vol-${exId}-w1">
+                    ${getWeekNumber() === 1 && vol > 0 ? volDisplay : '-'}
+                  </div>
+                </div>
+                <div class="record-week-item">
+                  <div class="record-week-label">2주차</div>
+                  <div class="record-week-val ${vol > 0 && getWeekNumber() === 2 ? '' : 'empty'}" id="vol-${exId}-w2">
+                    ${getWeekNumber() === 2 && vol > 0 ? volDisplay : '-'}
+                  </div>
+                </div>
+                <div class="record-week-item">
+                  <div class="record-week-label">3주차</div>
+                  <div class="record-week-val ${vol > 0 && getWeekNumber() === 3 ? '' : 'empty'}" id="vol-${exId}-w3">
+                    ${getWeekNumber() === 3 && vol > 0 ? volDisplay : '-'}
+                  </div>
+                </div>
+                <div class="record-week-item">
+                  <div class="record-week-label">4주차</div>
+                  <div class="record-week-val ${vol > 0 && getWeekNumber() === 4 ? '' : 'empty'}" id="vol-${exId}-w4">
+                    ${getWeekNumber() === 4 && vol > 0 ? volDisplay : '-'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          exIdx++;
+        });
+
+        if (exHtml) {
+          sectionHtml += `
+            <div class="record-section">
+              <div class="record-section-title">${day}요일 — ${sec.label}</div>
+              ${exHtml}
+            </div>
+          `;
+        }
+      });
+
+      if (sectionHtml && planKey === currentPlan) html += sectionHtml;
+    });
+  });
+
+  container.innerHTML = html || '<div style="color:var(--text-dim);padding:20px;text-align:center;">세션에서 운동을 완료하면 여기에 기록됩니다</div>';
+}
+
+// ===== 초기화 =====
+setToday();
+renderDayTabs();
+renderSessions();
+updateProgress();
+updateTimerDisplay();
+</script>
+</body>
+</html>
