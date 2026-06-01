@@ -603,9 +603,10 @@ function toggleSet(cid, exId) {
   checkedSets[cid] = isChecked;
 
   const ex = getExMeta(exId);
+  const targetSets = ex.sets || DEFAULT_SETS;
   let cc=0;
   for (let i=1;i<=DEFAULT_SETS;i++) if (checkedSets[`${exId}-set${i}`]) cc++;
-  document.getElementById(`card-${exId}`).classList.toggle('done', cc===DEFAULT_SETS);
+  document.getElementById(`card-${exId}`).classList.toggle('done', cc>=targetSets);
 
   updateTotalVolume(exId);
   updateProgress();
