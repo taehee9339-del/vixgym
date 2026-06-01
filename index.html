@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>빅스짐 세션 카드</title>
+<title>이천 내추럴 1등 목표</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
   :root {
@@ -17,7 +17,7 @@
   }
   .header { padding:16px 16px 0; position:sticky; top:0; background:var(--bg); z-index:100; padding-bottom:12px; border-bottom:1px solid var(--border); }
   .header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-  .gym-name { font-family:'Black Han Sans',sans-serif; font-size:1.25rem; letter-spacing:2px; color:var(--accent); }
+  .gym-name { font-family:'Black Han Sans',sans-serif; font-size:0.95rem; letter-spacing:1px; color:var(--accent); line-height:1.2; max-width:160px; }
   .header-right { display:flex; gap:6px; align-items:center; }
   .tab-btn { padding:6px 11px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-dim); font-family:'Black Han Sans',sans-serif; font-size:0.72rem; letter-spacing:1px; cursor:pointer; }
   .tab-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
@@ -75,6 +75,10 @@
   .total-volume-label { font-size:0.74rem; color:var(--text-mid); }
   .total-volume-val { font-family:'Black Han Sans',sans-serif; font-size:1rem; color:var(--accent); }
 
+  .memo-row { margin-top:8px; }
+  .memo-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--text); font-size:0.76rem; font-family:'Noto Sans KR',sans-serif; resize:vertical; min-height:34px; }
+  .memo-input:focus { outline:none; border-color:var(--accent); }
+  .memo-input::placeholder { color:var(--text-dim); }
   .section-label { font-family:'Black Han Sans',sans-serif; font-size:0.78rem; letter-spacing:2px; color:var(--text-dim); padding:8px 0; border-bottom:1px solid var(--border); margin-bottom:10px; margin-top:6px; }
   .warning-tag { font-size:0.66rem; color:var(--accent2); background:rgba(255,68,68,0.1); padding:2px 8px; border-radius:20px; border:1px solid rgba(255,68,68,0.2); display:inline-block; margin-top:4px; }
   .plan-b-badge { background:rgba(255,68,68,0.1); border:1px solid rgba(255,68,68,0.3); color:var(--accent2); border-radius:8px; padding:10px 14px; font-size:0.76rem; margin-bottom:14px; line-height:1.6; }
@@ -125,7 +129,7 @@
 
 <div class="header">
   <div class="header-top">
-    <div class="gym-name">VIXGYM</div>
+    <div class="gym-name">이천 내추럴 1등 목표</div>
     <div class="header-right">
       <div class="tab-btn active" id="tab-session" onclick="switchMainTab('session')">세션</div>
       <div class="tab-btn" id="tab-record" onclick="switchMainTab('record')">기록</div>
@@ -178,120 +182,120 @@ const PLAN_DATA = {
   A: { days:['월','화','수','목','금'], sessions:{
     '월':{ title:'가슴 + 등', tags:['프리웨이트','머신'], sections:[
       { label:'가슴 (프리 위주)', exercises:[
-        { name:'인클라인 바벨 벤치프레스', reps:'6~8', rpe:'8~9', warn:true },
-        { name:'인클라인 덤벨 플라이', reps:'12', rpe:'7~8' },
-        { name:'딥스', reps:'10~12', rpe:'7~8', noWeight:true },
+        { name:'인클라인 바벨 벤치프레스', sets:4, reps:'6~8', rpe:'8~9', warn:true },
+        { name:'인클라인 덤벨 플라이', sets:3, reps:'12', rpe:'7~8' },
+        { name:'딥스', sets:3, reps:'10~12', rpe:'7~8', noWeight:true },
       ]},
       { label:'등 (머신 위주)', exercises:[
-        { name:'랫풀다운 (언더그립)', reps:'8~10', rpe:'7~8' },
-        { name:'Panatta 하이로우', reps:'10~12', rpe:'7~8' },
-        { name:'Hammer 로우로우', reps:'12', rpe:'7~8' },
+        { name:'랫풀다운 (언더그립)', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'Panatta 하이로우', sets:3, reps:'10~12', rpe:'7~8' },
+        { name:'Hammer 로우로우', sets:3, reps:'12', rpe:'7~8' },
       ]},
     ]},
     '화':{ title:'전면 하체 + 측·후면 어깨', tags:['하체','어깨'], sections:[
       { label:'전면 하체', exercises:[
-        { name:'바벨 스쿼트', reps:'8~10', rpe:'8~9', warn:true },
-        { name:'Cybex 레그프레스', reps:'10~12', rpe:'7~8' },
-        { name:'레그 익스텐션', reps:'12', rpe:'7~8' },
+        { name:'바벨 스쿼트', sets:4, reps:'8~10', rpe:'8~9', warn:true },
+        { name:'Cybex 레그프레스', sets:3, reps:'10~12', rpe:'7~8' },
+        { name:'레그 익스텐션', sets:3, reps:'12', rpe:'7~8' },
       ]},
       { label:'측·후면 어깨', exercises:[
-        { name:'사이드 레터럴 레이즈', reps:'12~15', rpe:'7~8' },
-        { name:'케이블 레터럴 레이즈', reps:'15', rpe:'7~8' },
-        { name:'리어델트 머신', reps:'15', rpe:'7~8' },
+        { name:'사이드 레터럴 레이즈', sets:4, reps:'12~15', rpe:'7~8' },
+        { name:'케이블 레터럴 레이즈', sets:3, reps:'15', rpe:'7~8' },
+        { name:'리어델트 머신', sets:3, reps:'15', rpe:'7~8' },
       ]},
     ]},
     '수':{ title:'팔 + 복근', tags:['이두','삼두','복근'], sections:[
       { label:'이두', exercises:[
-        { name:'바벨 컬', reps:'8~10', rpe:'8~9' },
-        { name:'인클라인 덤벨 컬', reps:'12~15', rpe:'7~8' },
+        { name:'바벨 컬', sets:4, reps:'8~10', rpe:'8~9' },
+        { name:'인클라인 덤벨 컬', sets:4, reps:'12~15', rpe:'7~8' },
       ]},
       { label:'삼두', exercises:[
-        { name:'클로즈그립 벤치프레스', reps:'12~15', rpe:'7~8' },
-        { name:'케이블 푸시다운 (로프)', reps:'15', rpe:'7~8' },
-        { name:'해머컬', reps:'10', rpe:'7~8' },
+        { name:'클로즈그립 벤치프레스', sets:3, reps:'12~15', rpe:'7~8' },
+        { name:'케이블 푸시다운 (로프)', sets:3, reps:'15', rpe:'7~8' },
+        { name:'해머컬', sets:3, reps:'10', rpe:'7~8' },
       ]},
       { label:'복근', exercises:[
-        { name:'복근', reps:'12', rpe:'7~8', noWeight:true },
+        { name:'복근', sets:3, reps:'12', rpe:'7~8', noWeight:true },
       ]},
     ]},
     '목':{ title:'등 + 하체 후면', tags:['등','햄스트링','둔근'], sections:[
       { label:'등', exercises:[
-        { name:'덤벨 루마니안 데드리프트', reps:'10~12', rpe:'7~8', warn:true },
-        { name:'랫풀다운 (와이드)', reps:'8~10', rpe:'7~8' },
-        { name:'시티드 케이블 로우 (넓게)', reps:'10', rpe:'7~8' },
+        { name:'덤벨 루마니안 데드리프트', sets:3, reps:'10~12', rpe:'7~8', warn:true },
+        { name:'랫풀다운 (와이드)', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'시티드 케이블 로우 (넓게)', sets:3, reps:'10', rpe:'7~8' },
       ]},
       { label:'하체 후면', exercises:[
-        { name:'Cybex Prone 레그컬', reps:'12', rpe:'7~8' },
-        { name:'Cybex Seated 레그컬', reps:'12', rpe:'7~8' },
+        { name:'Cybex Prone 레그컬', sets:3, reps:'12', rpe:'7~8' },
+        { name:'Cybex Seated 레그컬', sets:3, reps:'12', rpe:'7~8' },
       ]},
     ]},
     '금':{ title:'어깨', tags:['저중량','펌핑','가슴 간접'], sections:[
       { label:'어깨', exercises:[
-        { name:'스미스 고각 숄더프레스', reps:'8~10', rpe:'7~8' },
-        { name:'아스날 숄더 (무게 낮추고)', reps:'8~10', rpe:'7~8' },
-        { name:'사이드 레터럴 레이즈', reps:'12~15', rpe:'7~8' },
-        { name:'측 후면 레터럴 레이즈', reps:'15', rpe:'7~8' },
-        { name:'덤벨 프론트', reps:'15', rpe:'7~8' },
+        { name:'스미스 고각 숄더프레스', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'아스날 숄더 (무게 낮추고)', sets:3, reps:'8~10', rpe:'7~8' },
+        { name:'사이드 레터럴 레이즈', sets:4, reps:'12~15', rpe:'7~8' },
+        { name:'측 후면 레터럴 레이즈', sets:3, reps:'15', rpe:'7~8' },
+        { name:'덤벨 프론트', sets:3, reps:'15', rpe:'7~8' },
       ]},
     ]},
   }},
   B: { days:['월','화','수','목','금'], sessions:{
     '월':{ title:'가슴 + 등', tags:['프리웨이트','머신'], sections:[
       { label:'가슴 (프리 위주)', exercises:[
-        { name:'인클라인 바벨 벤치프레스', reps:'6~8', rpe:'8~9', warn:true },
-        { name:'인클라인 덤벨 플라이', reps:'12', rpe:'7~8' },
-        { name:'딥스', reps:'10~12', rpe:'7~8', noWeight:true },
+        { name:'인클라인 바벨 벤치프레스', sets:4, reps:'6~8', rpe:'8~9', warn:true },
+        { name:'인클라인 덤벨 플라이', sets:3, reps:'12', rpe:'7~8' },
+        { name:'딥스', sets:3, reps:'10~12', rpe:'7~8', noWeight:true },
       ]},
       { label:'등 (머신 위주)', exercises:[
-        { name:'랫풀다운 (언더그립)', reps:'8~10', rpe:'7~8' },
-        { name:'Panatta 하이로우', reps:'10~12', rpe:'7~8' },
-        { name:'Hammer 로우로우', reps:'12', rpe:'7~8' },
+        { name:'랫풀다운 (언더그립)', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'Panatta 하이로우', sets:3, reps:'10~12', rpe:'7~8' },
+        { name:'Hammer 로우로우', sets:3, reps:'12', rpe:'7~8' },
       ]},
     ]},
     '화':{ title:'전면 하체 + 측·후면 어깨', tags:['하체','어깨'], sections:[
       { label:'전면 하체', exercises:[
-        { name:'바벨 스쿼트', reps:'8~10', rpe:'8~9', warn:true },
-        { name:'Cybex 레그프레스', reps:'10~12', rpe:'7~8' },
-        { name:'레그 익스텐션', reps:'12', rpe:'7~8' },
+        { name:'바벨 스쿼트', sets:4, reps:'8~10', rpe:'8~9', warn:true },
+        { name:'Cybex 레그프레스', sets:3, reps:'10~12', rpe:'7~8' },
+        { name:'레그 익스텐션', sets:3, reps:'12', rpe:'7~8' },
       ]},
       { label:'측·후면 어깨', exercises:[
-        { name:'사이드 레터럴 레이즈', reps:'12~15', rpe:'7~8' },
-        { name:'케이블 레터럴 레이즈', reps:'15', rpe:'7~8' },
-        { name:'리어델트 머신', reps:'15', rpe:'7~8' },
+        { name:'사이드 레터럴 레이즈', sets:4, reps:'12~15', rpe:'7~8' },
+        { name:'케이블 레터럴 레이즈', sets:3, reps:'15', rpe:'7~8' },
+        { name:'리어델트 머신', sets:3, reps:'15', rpe:'7~8' },
       ]},
     ]},
     '수':{ title:'팔 + 복근', tags:['이두','삼두','복근'], sections:[
       { label:'이두', exercises:[
-        { name:'바벨 컬', reps:'8~10', rpe:'8~9' },
-        { name:'인클라인 덤벨 컬', reps:'12~15', rpe:'7~8' },
+        { name:'바벨 컬', sets:4, reps:'8~10', rpe:'8~9' },
+        { name:'인클라인 덤벨 컬', sets:4, reps:'12~15', rpe:'7~8' },
       ]},
       { label:'삼두', exercises:[
-        { name:'클로즈그립 벤치프레스', reps:'12~15', rpe:'7~8' },
-        { name:'케이블 푸시다운 (로프)', reps:'15', rpe:'7~8' },
-        { name:'해머컬', reps:'10', rpe:'7~8' },
+        { name:'클로즈그립 벤치프레스', sets:3, reps:'12~15', rpe:'7~8' },
+        { name:'케이블 푸시다운 (로프)', sets:3, reps:'15', rpe:'7~8' },
+        { name:'해머컬', sets:3, reps:'10', rpe:'7~8' },
       ]},
       { label:'복근', exercises:[
-        { name:'복근', reps:'12', rpe:'7~8', noWeight:true },
+        { name:'복근', sets:3, reps:'12', rpe:'7~8', noWeight:true },
       ]},
     ]},
     '목':{ title:'어깨', tags:['컨디션 나쁠 때','플랜 B'], planBNote:'목요일 하체 컨디션 안 좋을 때 — 어깨로 대체. 하체는 금요일.', sections:[
       { label:'어깨', exercises:[
-        { name:'스미스 고각 숄더프레스', reps:'8~10', rpe:'7~8' },
-        { name:'아스날 숄더 (무게 낮추고)', reps:'8~10', rpe:'7~8' },
-        { name:'사이드 레터럴 레이즈', reps:'12~15', rpe:'7~8' },
-        { name:'측 후면 레터럴 레이즈', reps:'15', rpe:'7~8' },
-        { name:'덤벨 프론트', reps:'15', rpe:'7~8' },
+        { name:'스미스 고각 숄더프레스', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'아스날 숄더 (무게 낮추고)', sets:3, reps:'8~10', rpe:'7~8' },
+        { name:'사이드 레터럴 레이즈', sets:4, reps:'12~15', rpe:'7~8' },
+        { name:'측 후면 레터럴 레이즈', sets:3, reps:'15', rpe:'7~8' },
+        { name:'덤벨 프론트', sets:3, reps:'15', rpe:'7~8' },
       ]},
     ]},
     '금':{ title:'등 + 하체 후면', tags:['플랜 B','후면사슬'], planBNote:'목요일 어깨로 대체한 날 — 금요일은 등+하체 후면.', sections:[
       { label:'등', exercises:[
-        { name:'덤벨 루마니안 데드리프트', reps:'10~12', rpe:'7~8', warn:true },
-        { name:'랫풀다운 (와이드)', reps:'8~10', rpe:'7~8' },
-        { name:'시티드 케이블 로우 (넓게)', reps:'10', rpe:'7~8' },
+        { name:'덤벨 루마니안 데드리프트', sets:3, reps:'10~12', rpe:'7~8', warn:true },
+        { name:'랫풀다운 (와이드)', sets:4, reps:'8~10', rpe:'7~8' },
+        { name:'시티드 케이블 로우 (넓게)', sets:3, reps:'10', rpe:'7~8' },
       ]},
       { label:'하체 후면', exercises:[
-        { name:'Cybex Prone 레그컬', reps:'12', rpe:'7~8' },
-        { name:'Cybex Seated 레그컬', reps:'12', rpe:'7~8' },
+        { name:'Cybex Prone 레그컬', sets:3, reps:'12', rpe:'7~8' },
+        { name:'Cybex Seated 레그컬', sets:3, reps:'12', rpe:'7~8' },
       ]},
     ]},
   }}
@@ -320,6 +324,18 @@ function loadName(exId, def) {
 }
 function saveName(exId, name) {
   try { localStorage.setItem('vixgym_name_'+exId, name); } catch(e){}
+}
+function loadSetVal(exId, type, i) {
+  try { return localStorage.getItem('vixgym_'+type+'_'+exId+'_'+i) || ''; } catch(e){ return ''; }
+}
+function saveSetVal(exId, type, i, val) {
+  try { localStorage.setItem('vixgym_'+type+'_'+exId+'_'+i, val); } catch(e){}
+}
+function loadMemo(exId) {
+  try { return localStorage.getItem('vixgym_memo_'+currentWeek+'_'+exId) || ''; } catch(e){ return ''; }
+}
+function onMemoChange(exId, val) {
+  try { localStorage.setItem('vixgym_memo_'+currentWeek+'_'+exId, val); } catch(e){}
 }
 function loadWeek() {
   try { currentWeek = parseInt(localStorage.getItem('vixgym_week')||'1'); recordWeek = currentWeek; } catch(e){}
@@ -445,6 +461,7 @@ function selectDay(day) {
   document.querySelectorAll('.session-container').forEach(el=>el.style.display='none');
   const t = document.getElementById(`session-${currentPlan}-${day}`);
   if (t) t.style.display='block';
+  recalcAllVolumes();
   updateProgress();
 }
 
@@ -487,10 +504,12 @@ function renderExerciseCard(ex, exId, num) {
   </div>`;
   for (let i=1;i<=DEFAULT_SETS;i++){
     const cid = `${exId}-set${i}`;
+    const wv = loadSetVal(exId,'weight',i);
+    const rv = loadSetVal(exId,'reps',i);
     setsHTML += `<div class="set-row">
       <div class="set-label">SET ${i}</div>
-      ${noWeight?'':`<input class="set-input" type="number" inputmode="decimal" placeholder="kg" id="weight-${cid}" onchange="onSetChange('${exId}')">`}
-      <input class="set-input" type="number" inputmode="numeric" placeholder="회" id="reps-${cid}" onchange="onSetChange('${exId}')">
+      ${noWeight?'':`<input class="set-input" type="number" inputmode="decimal" placeholder="kg" id="weight-${cid}" value="${wv}" onchange="onSetChange('${exId}',${i})">`}
+      <input class="set-input" type="number" inputmode="numeric" placeholder="회" id="reps-${cid}" value="${rv}" onchange="onSetChange('${exId}',${i})">
       <div class="set-check" id="check-${cid}" onclick="toggleSet('${cid}','${exId}')">✓</div>
     </div>`;
   }
@@ -499,6 +518,10 @@ function renderExerciseCard(ex, exId, num) {
   setsHTML += `<div class="total-volume-row">
     <div class="total-volume-label">${volLabel}</div>
     <div class="total-volume-val" id="totalvol-${exId}">0${volUnit}</div>
+  </div>`;
+  const memo = loadMemo(exId);
+  setsHTML += `<div class="memo-row">
+    <textarea class="memo-input" id="memo-${exId}" placeholder="메모 (예: 자극 약했음, 무게 가벼움)" onchange="onMemoChange('${exId}', this.value)" rows="1">${memo}</textarea>
   </div>`;
 
   return `<div class="exercise-card" id="card-${exId}">
@@ -509,7 +532,7 @@ function renderExerciseCard(ex, exId, num) {
           <input class="ex-name" type="text" value="${name}" onclick="event.stopPropagation()" onchange="onNameChange('${exId}', this.value)">
           <span class="edit-icon">✎</span>
         </div>
-        <div class="ex-detail">${DEFAULT_SETS}세트 × ${ex.reps}회${ex.warn?'<br><span class="warning-tag">⚠️ 허리 폼 주의</span>':''}</div>
+        <div class="ex-detail">${ex.sets}세트 × ${ex.reps}회${ex.warn?'<br><span class="warning-tag">⚠️ 허리 폼 주의</span>':''}</div>
       </div>
       <div class="ex-rpe">RPE ${ex.rpe}</div>
     </div>
@@ -533,7 +556,15 @@ function getExMeta(exId) {
 function onNameChange(exId, name) { saveName(exId, name); }
 function toggleTracker(exId) { document.getElementById(`tracker-${exId}`).classList.toggle('open'); }
 
-function onSetChange(exId) {
+function onSetChange(exId, i) {
+  const cid = `${exId}-set${i}`;
+  const ex = getExMeta(exId);
+  if (!ex.noWeight) {
+    const w = document.getElementById(`weight-${cid}`)?.value || '';
+    saveSetVal(exId,'weight',i,w);
+  }
+  const r = document.getElementById(`reps-${cid}`)?.value || '';
+  saveSetVal(exId,'reps',i,r);
   updateTotalVolume(exId);
 }
 
@@ -647,7 +678,7 @@ function renderWeekSelect() {
     const btn = document.createElement('div');
     btn.className = 'week-select-btn'+(w===recordWeek?' active':'');
     btn.textContent = w+'주차';
-    btn.onclick = ()=>{ recordWeek=w; currentWeek=w; saveWeek(); renderWeekSelect(); renderRecordView(); renderSessions(); reapplyChecks(); };
+    btn.onclick = ()=>{ recordWeek=w; currentWeek=w; saveWeek(); checkedSets={}; renderWeekSelect(); renderRecordView(); renderSessions(); recalcAllVolumes(); updateProgress(); };
     c.appendChild(btn);
   }
 }
@@ -688,11 +719,24 @@ function renderRecordView() {
 }
 
 function resetAllRecords() {
-  if (confirm('모든 주차 기록을 초기화할까요? (운동 이름은 유지됩니다)')) {
+  if (confirm('모든 주차 기록을 초기화할까요? (무게/횟수/메모/볼륨 전부 삭제, 운동 이름은 유지)')) {
     STORE = {}; saveStore();
     checkedSets = {};
+    // 무게/횟수/메모 관련 모든 키 삭제 (이름 vixgym_name_은 유지)
+    try {
+      const keys = [];
+      for (let k=0; k<localStorage.length; k++) {
+        const key = localStorage.key(k);
+        if (key && (key.startsWith('vixgym_weight_') || key.startsWith('vixgym_reps_') || key.startsWith('vixgym_memo_'))) {
+          keys.push(key);
+        }
+      }
+      keys.forEach(key => localStorage.removeItem(key));
+    } catch(e){}
     renderRecordView();
-    renderSessions(); reapplyChecks(); updateProgress();
+    renderSessions();
+    recalcAllVolumes();
+    updateProgress();
   }
 }
 
@@ -708,11 +752,27 @@ function reapplyChecks() {
   }, 0);
 }
 
+function recalcAllVolumes() {
+  Object.entries(PLAN_DATA).forEach(([pk, plan]) => {
+    Object.entries(plan.sessions).forEach(([day, session]) => {
+      let exIdx=0;
+      session.sections.forEach(sec => {
+        sec.exercises.forEach(ex => {
+          const exId = `${pk}-${day}-${exIdx}`;
+          if (document.getElementById(`totalvol-${exId}`)) updateTotalVolume(exId);
+          exIdx++;
+        });
+      });
+    });
+  });
+}
+
 // ===== 초기화 =====
 loadStore(); loadWeek();
 setToday();
 renderDayTabs();
 renderSessions();
+recalcAllVolumes();
 updateProgress();
 updateTimerDisplay();
 </script>
