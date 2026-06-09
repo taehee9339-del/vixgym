@@ -171,20 +171,22 @@ let checkedSets={};
 let timerInterval=null, timerSeconds=120, timerTarget=120, timerRunning=false;
 let audioCtx=null, alarmInterval=null, wakeLock=null;
 
-// ===== 플랜A/B 공유: 스토리지 키는 항상 'A' 기준 =====
-function dataKey(day, slot){ return `vixgym_A_${day}_${slot}`; }
+// ===== 스토리지: 데이터는 항상 플랜A 기준 (A/B 공유) =====
+// DOM ID: pk+day+slot (플랜별 고유) — 중복 방지
+// 데이터 key: day+slot (플랜 무관)
+function dataKey(day,slot){ return `vixgym_A_${day}_${slot}`; }
+function domId(pk,day,slot){ return `${pk}-${day}-${slot}`; }
 
 function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 
-function inheritGet(prefix, day, slot, suffix){
-  for(let w=currentWeek; w>=1; w--){
+function inheritGet(prefix,day,slot,suffix){
+  for(let w=currentWeek;w>=1;w--){
     const v=localStorage.getItem(`${prefix}_${w}_${dataKey(day,slot)}${suffix}`);
-    if(v!==null && v!=='') return v;
+    if(v!==null&&v!=='') return v;
   }
   return '';
 }
-
 function loadName(day,slot){ return inheritGet('vxname',day,slot,''); }
 function saveNameV(day,slot,v){ lsSet('vxname_'+currentWeek+'_'+dataKey(day,slot),v); renderRecordIfOpen(); }
 function loadNameWeek(day,slot,w){
@@ -199,10 +201,8 @@ function loadSetVal(day,slot,type,i){ return inheritGet('vxset_'+type,day,slot,'
 function saveSetValV(day,slot,type,i,v){ lsSet(`vxset_${type}_${currentWeek}_${dataKey(day,slot)}_${i}`,v); }
 function loadMemo(day,slot){ return inheritGet('vxmemo',day,slot,''); }
 function saveMemoV(day,slot,v){ lsSet(`vxmemo_${currentWeek}_${dataKey(day,slot)}`,v); }
-
-// BW(체중운동) 토글 — 주차/플랜 무관하게 영구 저장
 function loadBW(day,slot){ return lsGet('vxbw_'+dataKey(day,slot),'0')==='1'; }
-function saveBW(day,slot,v){ lsSet('vxbw_'+dataKey(day,slot), v?'1':'0'); }
+function saveBW(day,slot,v){ lsSet('vxbw_'+dataKey(day,slot),v?'1':'0'); }
 
 let STORE={};
 function loadStore(){ try{ STORE=JSON.parse(lsGet('vixgym_records','{}')); }catch(e){ STORE={}; } }
@@ -222,8 +222,8 @@ function stopAlarm(){ if(alarmInterval){clearInterval(alarmInterval);alarmInterv
 async function requestWakeLock(){ try{ if('wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
 document.addEventListener('visibilitychange',async()=>{ if(wakeLock!==null&&document.visibilityState==='visible') await requestWakeLock(); });
 
-function loadDayTitle(day){ return lsGet('vxdaytitle_A_'+day, DAY_TITLES[day]); }
-function saveDayTitle(day,v){ lsSet('vxdaytitle_A_'+day, v||DAY_TITLES[day]); renderRecordIfOpen(); }
+function loadDayTitle(day){ return lsGet('vxdaytitle_A_'+day, DAY_TITLES[day]||''); }
+function saveDayTitle(day,v){ lsSet('vxdaytitle_A_'+day, v||DAY_TITLES[day]||''); renderRecordIfOpen(); }
 function setToday(){ const d=['일','월','화','수','목','금','토']; const n=new Date(); const dn=d[n.getDay()]; document.getElementById('today-date').textContent=`${n.getMonth()+1}/${n.getDate()}(${dn})`; if(DAYS.includes(dn)) currentDay=dn; }
 
 function switchMainTab(tab){
@@ -256,7 +256,6 @@ function selectDay(day){
 
 function renderSessions(){
   const c=document.getElementById('sessions'); c.innerHTML='';
-  // 플랜A/B 모두 렌더 — 데이터는 공유 (dataKey가 항상 A 기준)
   PLANS.forEach(pk=>{
     DAYS.forEach(day=>{
       const div=document.createElement('div');
@@ -270,20 +269,21 @@ function renderSessions(){
         </div>
         <div class="week-indicator">📍 현재 <b>${currentWeek}주차</b> 기록 중 (기록 탭에서 변경)</div>
       </div>`;
-      for(let slot=0;slot<SLOTS;slot++) html+=renderCard(day, slot);
+      for(let slot=0;slot<SLOTS;slot++) html+=renderCard(pk,day,slot);
       div.innerHTML=html; c.appendChild(div);
     });
   });
 }
 
-function renderCard(day, slot){
-  const id=`${day}-${slot}`;
+// renderCard: pk를 받아서 DOM ID에 포함 → 중복 없음
+// 데이터 읽기/쓰기는 day+slot 기준 (플랜 무관, 공유)
+function renderCard(pk,day,slot){
+  const did=domId(pk,day,slot); // DOM용 고유 ID (예: A-월-0, B-월-0)
   const name=loadName(day,slot);
   const reps=loadReps(day,slot);
   const rpe=loadRpe(day,slot);
   const isBW=loadBW(day,slot);
 
-  // 헤더 행: 무게칸은 BW가 아닐 때만
   let hdrRow=`<div class="set-header-row">
     <div class="set-header-label set-col">세트</div>
     ${isBW?'':'<div class="set-header-label input-col">무게(kg)</div>'}
@@ -296,28 +296,25 @@ function renderCard(day, slot){
     const r=loadSetVal(day,slot,'reps',i);
     setRows+=`<div class="set-row">
       <div class="set-label">SET ${i}</div>
-      ${isBW?'':`<input class="set-input" type="number" inputmode="decimal" placeholder="kg" id="w-${id}-${i}" value="${w}" onchange="onSet('${day}',${slot},${i})">`}
-      <input class="set-input" type="number" inputmode="numeric" placeholder="회" id="r-${id}-${i}" value="${r}" onchange="onSet('${day}',${slot},${i})">
-      <div class="set-check" id="c-${id}-${i}" onclick="toggleSet('${day}',${slot},${i})">✓</div>
+      ${isBW?'':`<input class="set-input" type="number" inputmode="decimal" placeholder="kg" id="w-${did}-${i}" value="${w}" onchange="onSet('${pk}','${day}',${slot},${i})">`}
+      <input class="set-input" type="number" inputmode="numeric" placeholder="회" id="r-${did}-${i}" value="${r}" onchange="onSet('${pk}','${day}',${slot},${i})">
+      <div class="set-check" id="c-${did}-${i}" onclick="toggleSet('${pk}','${day}',${slot},${i})">✓</div>
     </div>`;
   }
   let totals='';
-  if(!isBW){
-    totals+=`<div class="total-row first"><div class="total-label">총 볼륨 (무게×횟수)</div><div class="total-val" id="vol-${id}">0kg</div></div>`;
-  }
-  totals+=`<div class="total-row ${isBW?'first':''}"><div class="total-label">총 횟수</div><div class="total-val" id="rep-${id}">0회</div></div>`;
-
+  if(!isBW) totals+=`<div class="total-row first"><div class="total-label">총 볼륨 (무게×횟수)</div><div class="total-val" id="vol-${did}">0kg</div></div>`;
+  totals+=`<div class="total-row ${isBW?'first':''}"><div class="total-label">총 횟수</div><div class="total-val" id="rep-${did}">0회</div></div>`;
   const memo=loadMemo(day,slot);
-  const sets=hdrRow+setRows+totals+`<div class="memo-row"><textarea class="memo-input" id="memo-${id}" placeholder="메모 (자극, 컨디션 등)" rows="1" onchange="saveMemoV('${day}',${slot},this.value)">${memo}</textarea></div>`;
+  const inner=hdrRow+setRows+totals+`<div class="memo-row"><textarea class="memo-input" id="memo-${did}" placeholder="메모 (자극, 컨디션 등)" rows="1" onchange="saveMemoV('${day}',${slot},this.value)">${memo}</textarea></div>`;
 
-  return `<div class="exercise-card" id="card-${id}">
-    <div class="exercise-header" onclick="toggleTracker('${id}')">
-      <div class="ex-number" id="num-${id}">${slot+1}</div>
+  return `<div class="exercise-card" id="card-${did}">
+    <div class="exercise-header" onclick="toggleTracker('${did}')">
+      <div class="ex-number" id="num-${did}">${slot+1}</div>
       <div class="ex-info">
         <div class="ex-name-wrap">
           <input class="ex-name" type="text" placeholder="운동 이름 입력" value="${name}" onclick="event.stopPropagation()" onchange="saveNameV('${day}',${slot},this.value)">
           <span class="edit-icon">✎</span>
-          <span class="bw-toggle ${isBW?'on':''}" onclick="event.stopPropagation(); toggleBW('${day}',${slot})" title="체중운동 ON/OFF">BW</span>
+          <span class="bw-toggle ${isBW?'on':''}" onclick="event.stopPropagation(); toggleBW('${pk}','${day}',${slot})" title="체중운동 ON/OFF">BW</span>
         </div>
         <div class="ex-detail-edit" onclick="event.stopPropagation()">
           <input class="ex-mini-input" type="text" placeholder="세트×횟수  예: 4×8~10" value="${reps}" onchange="saveRepsV('${day}',${slot},this.value)">
@@ -325,92 +322,85 @@ function renderCard(day, slot){
         </div>
       </div>
     </div>
-    <div class="set-tracker" id="tracker-${id}">${sets}</div>
+    <div class="set-tracker" id="tracker-${did}">${inner}</div>
   </div>`;
 }
 
-// BW 토글: 저장 후 해당 카드만 다시 렌더
-function toggleBW(day, slot){
-  const isBW=loadBW(day,slot);
-  saveBW(day,slot,!isBW);
-  // 열려있는지 확인 후 재렌더
-  const trackerId=`tracker-${day}-${slot}`;
-  const wasOpen=document.getElementById(trackerId)?.classList.contains('open');
-  // 현재 보이는 플랜의 카드 교체
-  PLANS.forEach(pk=>{
-    const container=document.getElementById(`session-${pk}-${day}`);
+function toggleTracker(did){ document.getElementById(`tracker-${did}`)?.classList.toggle('open'); }
+
+// BW 토글: 저장 후 A/B 양쪽 카드 재렌더
+function toggleBW(pk,day,slot){
+  saveBW(day,slot,!loadBW(day,slot));
+  PLANS.forEach(p=>{
+    const container=document.getElementById(`session-${p}-${day}`);
     if(!container) return;
-    const cards=container.querySelectorAll('.exercise-card');
-    if(cards[slot]){
-      const newHtml=renderCard(day,slot);
-      const tmp=document.createElement('div');
-      tmp.innerHTML=newHtml;
-      const newCard=tmp.firstElementChild;
-      container.replaceChild(newCard, cards[slot]);
-      if(wasOpen) document.getElementById(trackerId)?.classList.add('open');
-    }
+    const did=domId(p,day,slot);
+    const oldCard=document.getElementById(`card-${did}`);
+    if(!oldCard) return;
+    const wasOpen=document.getElementById(`tracker-${did}`)?.classList.contains('open');
+    const tmp=document.createElement('div');
+    tmp.innerHTML=renderCard(p,day,slot);
+    const newCard=tmp.firstElementChild;
+    container.replaceChild(newCard, oldCard);
+    if(wasOpen) document.getElementById(`tracker-${did}`)?.classList.add('open');
   });
-  updateTotals(day,slot);
+  updateTotals(pk,day,slot);
 }
 
 function renderRecordIfOpen(){ if(document.getElementById('record-view').style.display==='block') renderRecordView(); }
-function toggleTracker(id){ document.getElementById(`tracker-${id}`).classList.toggle('open'); }
 
-function onSet(day,slot,i){
-  const id=`${day}-${slot}`;
+function onSet(pk,day,slot,i){
+  const did=domId(pk,day,slot);
   const isBW=loadBW(day,slot);
-  if(!isBW) saveSetValV(day,slot,'weight',i,document.getElementById(`w-${id}-${i}`)?.value||'');
-  saveSetValV(day,slot,'reps',i,document.getElementById(`r-${id}-${i}`)?.value||'');
-  updateTotals(day,slot);
+  if(!isBW) saveSetValV(day,slot,'weight',i,document.getElementById(`w-${did}-${i}`)?.value||'');
+  saveSetValV(day,slot,'reps',i,document.getElementById(`r-${did}-${i}`)?.value||'');
+  updateTotals(pk,day,slot);
 }
 
-function calcTotals(day,slot){
-  const id=`${day}-${slot}`;
+function calcTotals(pk,day,slot){
+  const did=domId(pk,day,slot);
   const isBW=loadBW(day,slot);
   let vol=0, reps=0;
   for(let i=1;i<=DEFAULT_SETS;i++){
-    const r=parseInt(document.getElementById(`r-${id}-${i}`)?.value)||0;
+    const r=parseInt(document.getElementById(`r-${did}-${i}`)?.value)||0;
     reps+=r;
-    if(!isBW){
-      const w=parseFloat(document.getElementById(`w-${id}-${i}`)?.value)||0;
-      vol+=w*r;
-    }
+    if(!isBW){ const w=parseFloat(document.getElementById(`w-${did}-${i}`)?.value)||0; vol+=w*r; }
   }
-  return {vol, reps, isBW};
+  return {vol,reps,isBW};
 }
 
-function updateTotals(day,slot){
-  const id=`${day}-${slot}`;
-  const {vol,reps,isBW}=calcTotals(day,slot);
-  const ve=document.getElementById(`vol-${id}`);
-  if(ve) ve.textContent=vol.toLocaleString()+'kg';
-  const re=document.getElementById(`rep-${id}`);
-  if(re) re.textContent=reps.toLocaleString()+'회';
+function updateTotals(pk,day,slot){
+  const did=domId(pk,day,slot);
+  const {vol,reps,isBW}=calcTotals(pk,day,slot);
+  const ve=document.getElementById(`vol-${did}`); if(ve) ve.textContent=vol.toLocaleString()+'kg';
+  const re=document.getElementById(`rep-${did}`); if(re) re.textContent=reps.toLocaleString()+'회';
+  // 기록은 데이터 키 기준으로 저장 (A/B 공유)
+  const storeKey=`${day}-${slot}`;
   if(!STORE[currentWeek]) STORE[currentWeek]={};
-  // 기록은 BW면 횟수, 아니면 볼륨으로 저장
-  STORE[currentWeek][id]= isBW ? reps : vol;
-  STORE[currentWeek][id+'_bw']= isBW ? 1 : 0;
+  STORE[currentWeek][storeKey]=isBW?reps:vol;
+  STORE[currentWeek][storeKey+'_bw']=isBW?1:0;
   saveStore();
 }
 
 // 완료 기준: 2세트 이상
-function toggleSet(day,slot,i){
+function toggleSet(pk,day,slot,i){
   initAudio();
-  const id=`${day}-${slot}`;
-  const chk=document.getElementById(`c-${id}-${i}`);
+  const did=domId(pk,day,slot);
+  const ck=`${did}-${i}`;
+  const chk=document.getElementById(`c-${ck}`);
   const on=chk.classList.toggle('checked');
-  checkedSets[`${id}-${i}`]=on;
-  let cc=0; for(let k=1;k<=DEFAULT_SETS;k++) if(checkedSets[`${id}-${k}`]) cc++;
-  document.getElementById(`card-${id}`).classList.toggle('done', cc>=2);
-  updateTotals(day,slot); updateProgress();
+  checkedSets[ck]=on;
+  let cc=0; for(let k=1;k<=DEFAULT_SETS;k++) if(checkedSets[`${did}-${k}`]) cc++;
+  document.getElementById(`card-${did}`)?.classList.toggle('done',cc>=2);
+  updateTotals(pk,day,slot); updateProgress();
   if(on){ resetTimer(); startTimer(); }
 }
 
 function updateProgress(){
   let total=0, done=0;
   for(let slot=0;slot<SLOTS;slot++){
-    const id=`${currentDay}-${slot}`;
-    for(let i=1;i<=DEFAULT_SETS;i++){ total++; if(checkedSets[`${id}-${i}`]) done++; }
+    const did=domId(currentPlan,currentDay,slot);
+    for(let i=1;i<=DEFAULT_SETS;i++){ total++; if(checkedSets[`${did}-${i}`]) done++; }
   }
   document.getElementById('progress-fill').style.width=(total>0?done/total*100:0)+'%';
 }
@@ -439,7 +429,7 @@ function renderRecordView(){
   DAYS.forEach(day=>{
     let cards='';
     for(let slot=0;slot<SLOTS;slot++){
-      const id=`${day}-${slot}`;
+      const storeKey=`${day}-${slot}`;
       let anyName=''; for(let w=1;w<=4;w++){ const nm=loadNameWeek(day,slot,w); if(nm){anyName=nm;break;} }
       if(!anyName) continue;
       const isBW=loadBW(day,slot);
@@ -447,8 +437,8 @@ function renderRecordView(){
       let cells='';
       for(let w=1;w<=4;w++){
         const wName=loadNameWeek(day,slot,w);
-        const val=(STORE[w]&&STORE[w][id])?STORE[w][id]:0;
-        const prev=(w>1&&STORE[w-1]&&STORE[w-1][id])?STORE[w-1][id]:0;
+        const val=(STORE[w]&&STORE[w][storeKey])?STORE[w][storeKey]:0;
+        const prev=(w>1&&STORE[w-1]&&STORE[w-1][storeKey])?STORE[w-1][storeKey]:0;
         const down=(val>0&&prev>0&&val<prev);
         const disp=val>0?val.toLocaleString()+unit:'-';
         const wLabel=wName?`${w}주<br><span style="font-size:0.56rem;color:#888;font-weight:normal">${wName}</span>`:`${w}주차`;
@@ -480,11 +470,12 @@ function resetAllRecords(){
 }
 
 function recalcAll(){
-  DAYS.forEach(day=>{
+  PLANS.forEach(pk=>DAYS.forEach(day=>{
     for(let slot=0;slot<SLOTS;slot++){
-      if(document.getElementById(`vol-${day}-${slot}`) || document.getElementById(`rep-${day}-${slot}`)) updateTotals(day,slot);
+      const did=domId(pk,day,slot);
+      if(document.getElementById(`vol-${did}`)||document.getElementById(`rep-${did}`)) updateTotals(pk,day,slot);
     }
-  });
+  }));
 }
 
 loadStore(); loadWeek(); setToday(); renderDayTabs(); renderSessions(); recalcAll(); updateProgress(); updateTimerDisplay();
