@@ -25,6 +25,11 @@
   .plan-btn sub { display:block; font-family:'Noto Sans KR',sans-serif; font-size:0.62rem; font-weight:300; margin-top:2px; opacity:0.8; }
   .day-tabs { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
   .day-tabs::-webkit-scrollbar { display:none; }
+  .bw-track-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .bw-track-label { font-size:0.74rem; color:var(--text-mid); flex:1; }
+  .bw-track-input { width:70px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:7px 6px; color:var(--text); font-size:0.82rem; font-family:'Noto Sans KR',sans-serif; text-align:center; -webkit-appearance:none; }
+  .bw-track-input:focus { outline:none; border-color:var(--accent); }
+  .bw-track-unit { font-size:0.7rem; color:var(--text-dim); }
   .day-tab { flex-shrink:0; padding:7px 16px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-dim); font-family:'Black Han Sans',sans-serif; font-size:0.8rem; letter-spacing:1px; cursor:pointer; }
   .day-tab.active { background:var(--surface2); border-color:var(--accent); color:var(--accent); }
   .session-container { padding:16px; display:none; }
@@ -107,6 +112,31 @@
   .record-week-val.empty { color:var(--text-dim); font-family:'Noto Sans KR',sans-serif; font-size:0.72rem; }
   .record-week-val.down { color:var(--accent2); background:rgba(255,68,68,0.12); }
   .record-reset-btn { width:100%; padding:12px; border-radius:10px; border:1px solid var(--accent2); background:rgba(255,68,68,0.1); color:var(--accent2); font-family:'Black Han Sans',sans-serif; font-size:0.78rem; cursor:pointer; margin-top:10px; }
+  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cal-nav-btn { width:34px; height:34px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-size:1rem; cursor:pointer; }
+  .cal-label { font-family:'Black Han Sans',sans-serif; font-size:0.92rem; letter-spacing:1px; }
+  .cal-dow-row { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+  .cal-dow-row div { text-align:center; font-size:0.62rem; color:var(--text-dim); padding-bottom:4px; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:14px; }
+  .cal-cell { aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; position:relative; background:var(--surface); border:1.5px solid transparent; }
+  .cal-cell.empty { visibility:hidden; cursor:default; }
+  .cal-daynum { font-size:0.72rem; color:var(--text-mid); }
+  .cal-cell.has-record .cal-daynum { color:var(--text); font-weight:700; }
+  .cal-dot { width:4px; height:4px; border-radius:50%; background:var(--accent); margin-top:2px; }
+  .cal-cell.today { border-color:var(--text-dim); }
+  .cal-cell.selected { border-color:var(--accent); background:rgba(200,240,0,0.08); }
+  .cal-detail { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:14px; min-height:60px; }
+  .cal-detail-date { font-family:'Black Han Sans',sans-serif; font-size:0.9rem; color:var(--accent); margin-bottom:10px; }
+  .cal-detail-section { margin-bottom:12px; }
+  .cal-detail-section:last-child { margin-bottom:0; }
+  .cal-detail-title { font-size:0.7rem; color:var(--text-dim); letter-spacing:1px; border-bottom:1px solid var(--border); padding-bottom:5px; margin-bottom:8px; }
+  .cal-ex-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:4px 0; flex-wrap:wrap; }
+  .cal-ex-name { font-size:0.8rem; flex:1; min-width:0; }
+  .cal-ex-val { font-family:'Black Han Sans',sans-serif; font-size:0.84rem; color:var(--accent); flex-shrink:0; }
+  .cal-bw-row { font-size:0.78rem; color:var(--text-mid); margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  .cal-bw-row b { color:var(--accent); font-family:'Black Han Sans',sans-serif; }
+  .cal-ex-memo { width:100%; font-size:0.7rem; color:var(--text-dim); margin-top:2px; }
+  .cal-empty-msg { color:var(--text-dim); font-size:0.78rem; text-align:center; padding:10px 0; }
 </style>
 </head>
 <body>
@@ -120,9 +150,15 @@
     </div>
   </div>
   <div id="session-header-controls">
+    <div class="bw-track-row">
+      <span class="bw-track-label">⚖️ 오늘 공복 체중</span>
+      <input class="bw-track-input" type="number" inputmode="decimal" step="0.1" placeholder="kg" id="bodyweight-input" onchange="saveBodyweightV(this.value)">
+      <span class="bw-track-unit">kg</span>
+    </div>
     <div class="plan-toggle">
       <div class="plan-btn active" onclick="setPlan('A')" id="btn-planA">PLAN A <sub>기본 루틴</sub></div>
       <div class="plan-btn" onclick="setPlan('B')" id="btn-planB">PLAN B <sub>컨디션 안 좋을 때</sub></div>
+      <div class="plan-btn" onclick="setPlan('C')" id="btn-planC">PLAN C <sub>추가 루틴</sub></div>
     </div>
     <div class="day-tabs" id="day-tabs"></div>
   </div>
@@ -131,10 +167,16 @@
 <div id="sessions"></div>
 
 <div class="record-container" id="record-view">
-  <div class="record-title">볼륨 기록</div>
-  <div class="record-sub">주차별 총 볼륨 (무게×횟수) · 체중운동은 총 횟수 · 전주보다 줄면 빨간색</div>
-  <div class="week-select" id="week-select"></div>
-  <div id="record-content"></div>
+  <div class="record-title">기록 캘린더</div>
+  <div class="record-sub">날짜를 누르면 그날 한 부위·종목·총 무게/횟수가 나와요</div>
+  <div class="cal-header">
+    <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+    <div class="cal-label" id="cal-label"></div>
+    <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+  </div>
+  <div class="cal-dow-row"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="cal-detail" id="cal-detail"></div>
   <button class="record-reset-btn" onclick="resetAllRecords()">전체 기록 초기화</button>
 </div>
 
@@ -164,12 +206,16 @@ const DEFAULT_SETS = 4;
 const SLOTS = 8;
 const DAY_TITLES = { '월':'가슴','화':'등','수':'하체','목':'어깨','금':'팔 + 복근' };
 const DAYS = ['월','화','수','목','금'];
-const PLANS = ['A','B'];
+const PLANS = ['A','B','C'];
 
-let currentPlan='A', currentDay='월', currentWeek=1, recordWeek=1;
+let currentPlan='A', currentDay='월', currentDate='';
 let checkedSets={};
 let timerInterval=null, timerSeconds=120, timerTarget=120, timerRunning=false;
 let audioCtx=null, alarmInterval=null, wakeLock=null;
+
+// ===== 날짜 유틸 (주차 대신 실제 날짜를 기준으로 기록) =====
+function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+function fmtDateShort(d){ const p=d.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; }
 
 // ===== 스토리지: 데이터는 항상 플랜A 기준 (A/B 공유) =====
 // DOM ID: pk+day+slot (플랜별 고유) — 중복 방지
@@ -180,35 +226,49 @@ function domId(pk,day,slot){ return `${pk}-${day}-${slot}`; }
 function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 
-function inheritGet(prefix,day,slot,suffix){
-  for(let w=currentWeek;w>=1;w--){
-    const v=localStorage.getItem(`${prefix}_${w}_${dataKey(day,slot)}${suffix}`);
+// ===== 요일별로 실제 기록이 있었던 날짜 목록 (날짜 기반 기록의 핵심 인덱스) =====
+let DAY_DATES={};
+function loadDayDates(){ try{ DAY_DATES=JSON.parse(lsGet('vixgym_day_dates','{}')); }catch(e){ DAY_DATES={}; } }
+function saveDayDates(){ lsSet('vixgym_day_dates',JSON.stringify(DAY_DATES)); }
+function registerDayDate(day,d){
+  if(!DAY_DATES[day]) DAY_DATES[day]=[];
+  if(!DAY_DATES[day].includes(d)){ DAY_DATES[day].push(d); DAY_DATES[day].sort(); saveDayDates(); }
+}
+function getDayDates(day){ return DAY_DATES[day]||[]; }
+
+// targetDate 이전(포함)에 기록된 값 중 가장 최근 값을 찾는다.
+// 운동이름/세트구성/RPE/메모가 그날 안 바뀌었어도 직전 입력값을 그대로 보여주기 위한 상속 로직 (주차 → 날짜로 전환)
+function valueAtOrBefore(prefix,day,slot,suffix,targetDate){
+  const dates=getDayDates(day).filter(d=>d<=targetDate);
+  for(let i=dates.length-1;i>=0;i--){
+    const v=localStorage.getItem(`${prefix}_${dates[i]}_${dataKey(day,slot)}${suffix}`);
     if(v!==null&&v!=='') return v;
   }
   return '';
 }
+function inheritGet(prefix,day,slot,suffix){ return valueAtOrBefore(prefix,day,slot,suffix,currentDate); }
+
 function loadName(day,slot){ return inheritGet('vxname',day,slot,''); }
-function saveNameV(day,slot,v){ lsSet('vxname_'+currentWeek+'_'+dataKey(day,slot),v); renderRecordIfOpen(); }
-function loadNameWeek(day,slot,w){
-  for(let ww=w;ww>=1;ww--){ const v=localStorage.getItem('vxname_'+ww+'_'+dataKey(day,slot)); if(v!==null&&v!=='') return v; }
-  return '';
-}
+function saveNameV(day,slot,v){ lsSet('vxname_'+currentDate+'_'+dataKey(day,slot),v); registerDayDate(day,currentDate); renderRecordIfOpen(); }
 function loadReps(day,slot){ return inheritGet('vxreps',day,slot,''); }
-function saveRepsV(day,slot,v){ lsSet('vxreps_'+currentWeek+'_'+dataKey(day,slot),v); }
+function saveRepsV(day,slot,v){ lsSet('vxreps_'+currentDate+'_'+dataKey(day,slot),v); registerDayDate(day,currentDate); }
 function loadRpe(day,slot){ return inheritGet('vxrpe',day,slot,''); }
-function saveRpeV(day,slot,v){ lsSet('vxrpe_'+currentWeek+'_'+dataKey(day,slot),v); }
+function saveRpeV(day,slot,v){ lsSet('vxrpe_'+currentDate+'_'+dataKey(day,slot),v); registerDayDate(day,currentDate); }
 function loadSetVal(day,slot,type,i){ return inheritGet('vxset_'+type,day,slot,'_'+i); }
-function saveSetValV(day,slot,type,i,v){ lsSet(`vxset_${type}_${currentWeek}_${dataKey(day,slot)}_${i}`,v); }
+function saveSetValV(day,slot,type,i,v){ lsSet(`vxset_${type}_${currentDate}_${dataKey(day,slot)}_${i}`,v); registerDayDate(day,currentDate); }
 function loadMemo(day,slot){ return inheritGet('vxmemo',day,slot,''); }
-function saveMemoV(day,slot,v){ lsSet(`vxmemo_${currentWeek}_${dataKey(day,slot)}`,v); }
+function saveMemoV(day,slot,v){ lsSet(`vxmemo_${currentDate}_${dataKey(day,slot)}`,v); registerDayDate(day,currentDate); }
 function loadBW(day,slot){ return lsGet('vxbw_'+dataKey(day,slot),'0')==='1'; }
 function saveBW(day,slot,v){ lsSet('vxbw_'+dataKey(day,slot),v?'1':'0'); }
+
+// ===== 매일 아침 공복 체중 (요일 탭과 무관, 날짜에만 종속, 자동 이어받기 없음) =====
+function loadBodyweightExact(date){ return lsGet('vxbodyweight_'+date,''); }
+function saveBodyweightV(v){ lsSet('vxbodyweight_'+currentDate,v); renderRecordIfOpen(); }
+function renderBodyweightInput(){ const el=document.getElementById('bodyweight-input'); if(el) el.value=loadBodyweightExact(currentDate); }
 
 let STORE={};
 function loadStore(){ try{ STORE=JSON.parse(lsGet('vixgym_records','{}')); }catch(e){ STORE={}; } }
 function saveStore(){ lsSet('vixgym_records',JSON.stringify(STORE)); }
-function loadWeek(){ currentWeek=parseInt(lsGet('vixgym_week','1')); recordWeek=currentWeek; }
-function saveWeek(){ lsSet('vixgym_week',String(currentWeek)); }
 
 // ===== 오디오 =====
 function initAudio(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
@@ -232,12 +292,13 @@ function switchMainTab(tab){
   document.getElementById('session-header-controls').style.display=tab==='session'?'block':'none';
   document.querySelectorAll('.session-container').forEach(el=>el.style.display='none');
   if(tab==='session'){ const t=document.getElementById(`session-${currentPlan}-${currentDay}`); if(t)t.style.display='block'; document.getElementById('record-view').style.display='none'; }
-  else{ document.getElementById('record-view').style.display='block'; renderRecordView(); }
+  else{ document.getElementById('record-view').style.display='block'; renderCalendar(); }
 }
 function setPlan(plan){
   currentPlan=plan;
   document.getElementById('btn-planA').classList.toggle('active',plan==='A');
   document.getElementById('btn-planB').classList.toggle('active',plan==='B');
+  document.getElementById('btn-planC').classList.toggle('active',plan==='C');
   renderDayTabs();
   document.querySelectorAll('.session-container').forEach(el=>el.style.display='none');
   const t=document.getElementById(`session-${currentPlan}-${currentDay}`); if(t)t.style.display='block';
@@ -267,7 +328,7 @@ function renderSessions(){
           <input class="session-title-input" type="text" value="${dayTitle}" placeholder="부위 입력" onchange="saveDayTitle('${day}',this.value)">
           <span class="title-edit-icon">✎</span>
         </div>
-        <div class="week-indicator">📍 현재 <b>${currentWeek}주차</b> 기록 중 (기록 탭에서 변경)</div>
+        <div class="week-indicator">📍 ${fmtDateShort(currentDate)} 기록 중 (날짜 자동 인식, 따로 안 눌러도 됨)</div>
       </div>`;
       for(let slot=0;slot<SLOTS;slot++) html+=renderCard(pk,day,slot);
       div.innerHTML=html; c.appendChild(div);
@@ -347,7 +408,7 @@ function toggleBW(pk,day,slot){
   updateTotals(pk,day,slot);
 }
 
-function renderRecordIfOpen(){ if(document.getElementById('record-view').style.display==='block') renderRecordView(); }
+function renderRecordIfOpen(){ if(document.getElementById('record-view').style.display==='block') renderCalendar(); }
 
 function onSet(pk,day,slot,i){
   const did=domId(pk,day,slot);
@@ -369,17 +430,21 @@ function calcTotals(pk,day,slot){
   return {vol,reps,isBW};
 }
 
-function updateTotals(pk,day,slot){
+// persist=false 면 화면 표시만 갱신하고 기록(STORE)에는 안 남김.
+// (앱을 그냥 열기만 해도 recalcAll이 돌면서 "오늘 기록"을 멋대로 만들어버리는 걸 막기 위함)
+function updateTotals(pk,day,slot,persist=true){
   const did=domId(pk,day,slot);
   const {vol,reps,isBW}=calcTotals(pk,day,slot);
   const ve=document.getElementById(`vol-${did}`); if(ve) ve.textContent=vol.toLocaleString()+'kg';
   const re=document.getElementById(`rep-${did}`); if(re) re.textContent=reps.toLocaleString()+'회';
+  if(!persist) return;
   // 기록은 데이터 키 기준으로 저장 (A/B 공유)
   const storeKey=`${day}-${slot}`;
-  if(!STORE[currentWeek]) STORE[currentWeek]={};
-  STORE[currentWeek][storeKey]=isBW?reps:vol;
-  STORE[currentWeek][storeKey+'_bw']=isBW?1:0;
+  if(!STORE[currentDate]) STORE[currentDate]={};
+  STORE[currentDate][storeKey]=isBW?reps:vol;
+  STORE[currentDate][storeKey+'_bw']=isBW?1:0;
   saveStore();
+  registerDayDate(day,currentDate);
 }
 
 // 완료 기준: 2세트 이상
@@ -412,50 +477,79 @@ function pauseTimer(){ timerRunning=false; clearInterval(timerInterval); documen
 function resetTimer(){ stopAlarm(); pauseTimer(); timerSeconds=timerTarget; updateTimerDisplay(); }
 function updateTimerDisplay(){ if(alarmInterval)return; const m=Math.floor(timerSeconds/60),s=timerSeconds%60; document.getElementById('timer-display').textContent=`${m}:${s.toString().padStart(2,'0')}`; }
 
-function renderWeekSelect(){
-  const c=document.getElementById('week-select'); c.innerHTML='';
-  for(let w=1;w<=4;w++){
-    const b=document.createElement('div');
-    b.className='week-select-btn'+(w===recordWeek?' active':'');
-    b.textContent=w+'주차';
-    b.onclick=()=>{ recordWeek=w; currentWeek=w; saveWeek(); checkedSets={}; renderWeekSelect(); renderRecordView(); renderSessions(); recalcAll(); updateProgress(); };
-    c.appendChild(b);
-  }
+// 기록 탭: 월간 캘린더. 날짜를 클릭하면 그 날짜에 "실제로" 기록된 것만 보여준다 (다른 날짜 값 상속 없음).
+let calYear=null, calMonth=null, calSelectedDate=null;
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function dateStr(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+
+// 그 날짜에 실제로 입력된 값만 (다른 날짜로부터 상속 X) — 메모/세트 기록처럼 "그날 그대로"가 중요한 항목용
+function exactValue(prefix,day,slot,suffix,date){
+  return localStorage.getItem(`${prefix}_${date}_${dataKey(day,slot)}${suffix}`)||'';
+}
+function hasAnyRecord(date){
+  if(loadBodyweightExact(date)) return true;
+  return !!(STORE[date]&&Object.keys(STORE[date]).some(k=>!k.endsWith('_bw')&&STORE[date][k]>0));
 }
 
-function renderRecordView(){
-  renderWeekSelect();
-  const c=document.getElementById('record-content'); let html='';
+function renderCalendar(){
+  if(!calYear){ const t=new Date(); calYear=t.getFullYear(); calMonth=t.getMonth()+1; }
+  const first=new Date(calYear,calMonth-1,1);
+  const startDow=first.getDay();
+  const daysInMonth=new Date(calYear,calMonth,0).getDate();
+  const todayD=todayStr();
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=dateStr(calYear,calMonth,d);
+    const has=hasAnyRecord(ds);
+    cells+=`<div class="cal-cell ${has?'has-record':''} ${ds===todayD?'today':''} ${ds===calSelectedDate?'selected':''}" onclick="selectCalDate('${ds}')">
+      <div class="cal-daynum">${d}</div>${has?'<div class="cal-dot"></div>':''}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=cells;
+  document.getElementById('cal-label').textContent=`${calYear}년 ${calMonth}월`;
+  renderCalDetail();
+}
+function calNav(delta){
+  calMonth+=delta;
+  if(calMonth<1){calMonth=12;calYear--;}
+  if(calMonth>12){calMonth=1;calYear++;}
+  renderCalendar();
+}
+function selectCalDate(ds){ calSelectedDate=(calSelectedDate===ds)?null:ds; renderCalendar(); }
+
+function renderCalDetail(){
+  const el=document.getElementById('cal-detail');
+  if(!calSelectedDate){ el.innerHTML='<div class="cal-empty-msg">날짜를 선택하면 그날 기록이 나와요</div>'; return; }
+  const ds=calSelectedDate;
+  let html=`<div class="cal-detail-date">${fmtDateShort(ds)} 기록</div>`;
+  const bw=loadBodyweightExact(ds);
+  if(bw) html+=`<div class="cal-bw-row">⚖️ 공복 체중 <b>${bw}kg</b></div>`;
+  let any=!!bw;
   DAYS.forEach(day=>{
-    let cards='';
+    let rows='';
     for(let slot=0;slot<SLOTS;slot++){
       const storeKey=`${day}-${slot}`;
-      let anyName=''; for(let w=1;w<=4;w++){ const nm=loadNameWeek(day,slot,w); if(nm){anyName=nm;break;} }
-      if(!anyName) continue;
-      const isBW=loadBW(day,slot);
-      const unit=isBW?'회':'kg';
-      let cells='';
-      for(let w=1;w<=4;w++){
-        const wName=loadNameWeek(day,slot,w);
-        const val=(STORE[w]&&STORE[w][storeKey])?STORE[w][storeKey]:0;
-        const prev=(w>1&&STORE[w-1]&&STORE[w-1][storeKey])?STORE[w-1][storeKey]:0;
-        const down=(val>0&&prev>0&&val<prev);
-        const disp=val>0?val.toLocaleString()+unit:'-';
-        const wLabel=wName?`${w}주<br><span style="font-size:0.56rem;color:#888;font-weight:normal">${wName}</span>`:`${w}주차`;
-        cells+=`<div class="record-week-item">
-          <div class="record-week-label">${wLabel}</div>
-          <div class="record-week-val ${val>0?'':'empty'} ${down?'down':''}">${disp}</div>
-        </div>`;
-      }
-      cards+=`<div class="record-card"><div class="record-week-row">${cells}</div></div>`;
+      const val=(STORE[ds]&&STORE[ds][storeKey])?STORE[ds][storeKey]:0;
+      if(!val) continue; // 그 날짜에 실제로 한 종목만 — 다른 날짜 값은 안 가져옴
+      const isBwRec=!!(STORE[ds]&&STORE[ds][storeKey+'_bw']);
+      const nm=valueAtOrBefore('vxname',day,slot,'',ds)||`운동 ${slot+1}`; // 이름은 "그 날짜 기준" 스냅샷
+      const memo=exactValue('vxmemo',day,slot,'',ds); // 메모는 그 날짜에 쓴 것만, 상속 없음
+      rows+=`<div class="cal-ex-row">
+        <div class="cal-ex-name">${nm}</div>
+        <div class="cal-ex-val">${val.toLocaleString()}${isBwRec?'회':'kg'}</div>
+        ${memo?`<div class="cal-ex-memo">📝 ${memo}</div>`:''}
+      </div>`;
     }
-    if(cards) html+=`<div class="record-section"><div class="record-section-title">${day}요일 — ${loadDayTitle(day)}</div>${cards}</div>`;
+    if(rows){ any=true; html+=`<div class="cal-detail-section"><div class="cal-detail-title">${loadDayTitle(day)}</div>${rows}</div>`; }
   });
-  c.innerHTML=html||'<div style="color:var(--text-dim);padding:20px;text-align:center;font-size:0.8rem;">운동 이름을 입력하고 완료 체크하면<br>여기에 기록됩니다</div>';
+  if(!any) html+='<div class="cal-empty-msg">이 날은 기록이 없어요</div>';
+  el.innerHTML=html;
 }
 
 function resetAllRecords(){
-  if(confirm('모든 주차 기록을 초기화할까요?\n(무게/횟수/메모/볼륨 삭제, 운동 이름·세트·RPE·BW설정은 유지)')){
+  if(confirm('모든 기록을 초기화할까요?\n(무게/횟수/메모/볼륨 삭제, 운동 이름·세트구성·RPE·BW설정은 유지)')){
     STORE={}; saveStore(); checkedSets={};
     try{
       const ks=[];
@@ -465,7 +559,7 @@ function resetAllRecords(){
       }
       ks.forEach(k=>localStorage.removeItem(k));
     }catch(e){}
-    renderRecordView(); renderSessions(); recalcAll(); updateProgress();
+    renderCalendar(); renderSessions(); recalcAll(); updateProgress();
   }
 }
 
@@ -473,12 +567,12 @@ function recalcAll(){
   PLANS.forEach(pk=>DAYS.forEach(day=>{
     for(let slot=0;slot<SLOTS;slot++){
       const did=domId(pk,day,slot);
-      if(document.getElementById(`vol-${did}`)||document.getElementById(`rep-${did}`)) updateTotals(pk,day,slot);
+      if(document.getElementById(`vol-${did}`)||document.getElementById(`rep-${did}`)) updateTotals(pk,day,slot,false);
     }
   }));
 }
 
-loadStore(); loadWeek(); setToday(); renderDayTabs(); renderSessions(); recalcAll(); updateProgress(); updateTimerDisplay();
+loadStore(); loadDayDates(); currentDate=todayStr(); setToday(); renderDayTabs(); renderSessions(); recalcAll(); updateProgress(); updateTimerDisplay(); renderBodyweightInput();
 </script>
 </body>
 </html>
